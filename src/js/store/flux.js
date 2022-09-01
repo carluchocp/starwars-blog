@@ -1,44 +1,64 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			character:[],
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			],
-			deimian: ["uno", "dos"]
+			//endpoints
+			urlBase: "https://swapi.dev/api/",
+			urlCharacter: "people/",
+			urlPlanets: "planets/",
+			//data
+			characters: [],
+			planets: [],
+			//favoritos
+			favorites: [],
 		},
 		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
+			getCharacters: async() => {
+				const store = getStore()
+				try {
+					const response = await fetch(`${store.urlBase}${store.urlCharacter}`)
+					if(response.ok){
+						const data = await response.json()
+						setStore({
+							...store, 
+							characters: data.results
+						})
+					}
+				}catch(error) {
+					console.log("getCharacater", error)
+				}
 			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
-
-				//reset the global store
-				setStore({ demo: demo });
+			getPlanets: async() => {
+				const store = getStore()
+				try {
+					const response = await fetch(`${store.urlBase}${store.urlPlanets}`)
+					if(response.ok){
+						const data = await response.json()
+						setStore({
+							...store,
+							planets: data.results
+						})
+					}
+				}catch(error) {
+					console.log("getPlanets", error)
+				}
+			},        
+			//en este caso el id se le pasa created de la api
+			addFavorites: (item) => {
+				const store = getStore()
+				const exist = store.favorites.find((favorite) => favorite.created == item.created)
+				if(!exist){
+					setStore({
+						...store,
+						favorites: [...store.favorites, item] 
+					})
+				}else{
+					const updatedFavorites = store.favorites.filter((favorite) => favorite.created != item.created) 
+					setStore({
+						...store,
+						favorites: updatedFavorites
+					})
+				}
 			}
 		}
 	};
